@@ -1,3 +1,5 @@
+""" Main module for usbreq. You mostly want the methods of :py:class:`USBDevice`. """
+
 import enum
 
 import usb.core
@@ -9,7 +11,7 @@ def find(*args, **kwargs):
 
 
 class USBDirection(enum.IntEnum):
-    """ This class is used internally, and should not be considered a public part of the API. """
+    """ The direction field of bmRequestType. """
 
     OUT = 0x00
     IN  = 0x80
@@ -20,6 +22,16 @@ class USBDirection(enum.IntEnum):
 
     @classmethod
     def parse(cls, direction):
+        """
+        Parses a USB direction from a string or number. Strings are accepted in any case,
+        with underscores, dashes, or spaces.
+
+        :param direction:
+            A string or integer describing the descriptor type.
+            Valid strings are: ``"OUT"``, ``"IN"``, ``"HOST_TO_DEVICE"``, and ``"DEVICE_TO_HOST"``, in any case,
+            and with underscores, dashes, or spaces.
+        :type direction: str or int
+        """
 
         if isinstance(direction, str):
 
@@ -59,7 +71,18 @@ class USBDirection(enum.IntEnum):
 
 
 class USBRequestType(enum.IntEnum):
-    """ This class is used internally, and should not be considered a public part of the API. """
+    """
+    The type field of bmRequestType.
+
+    .. attribute:: STANDARD
+        :annotation: = 0x00
+    .. attribute:: CLASS
+        :annotation: = 0x20
+    .. attribute:: VENDOR
+        :annotation: = 0x40
+    .. attribute:: RESERVED
+        :annotation: = 0x60
+    """
 
     STANDARD = 0x00
     CLASS    = 0x20
@@ -187,7 +210,7 @@ class USBDescriptorType(enum.IntEnum):
     @classmethod
     def parse(cls, descriptor_type):
         """
-        Parses a descriptor type from a string or a number. Strings are accepted in any case.
+        Parses a descriptor type from a string or number. Strings are accepted in any case.
 
         :param descriptor_type: A string or integer describing the descriptor type.
         :type descriptor_type: str or int
@@ -207,6 +230,7 @@ class USBDescriptorType(enum.IntEnum):
 
 
 class USBDevice:
+    """ Wrapper for :py:class:`usb.core.Device` that adds shortcut and convenience methods. """
 
     def __init__(self, dev: usb.core.Device):
 
@@ -262,7 +286,7 @@ class USBDevice:
         """
         Shortcut for the GET_DESCRIPTOR standard request.
 
-        Note: A list of known descriptor types can be found at :py:class:`USBDevice`.
+        Note: A list of known descriptor types can be found at :py:class:`USBDescriptorType`.
 
         :param type: The type of descriptor to get. Accepts as a string in any case, or a number.
         :type kind: str or int
