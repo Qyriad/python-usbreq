@@ -37,13 +37,13 @@ class USBDirection(enum.IntEnum):
     def parse(cls, direction):
         """
         Parses a USB direction from a string or number. Strings are accepted in any case,
-        with underscores, dashes, or spaces.
+        with underscores, dashes, or even spaces.
 
         :param direction:
             A string or integer describing the descriptor type.
             Valid strings are: ``"OUT"``, ``"IN"``, ``"HOST_TO_DEVICE"``, and ``"DEVICE_TO_HOST"``, in any case,
             and with underscores, dashes, or spaces.
-        :type direction: str or int
+        :type direction: str, int, or USBDirection
         """
 
         if isinstance(direction, cls):
@@ -53,18 +53,6 @@ class USBDirection(enum.IntEnum):
 
             direction = direction.upper().replace('-', '_').replace(' ', '_')
             return cls[direction]
-
-            # if direction in ('IN', 'DEVICE_TO_HOST', 'DEVICE-TO-HOST', 'DEVICE TO HOST'):
-                # return USBDirection.IN
-
-            # elif direction in ('OUT', 'HOST_TO_DEVICE', 'HOST-TO-DEVICE', 'HOST TO DEVICE'):
-                # return USBDirection.OUT
-
-            # else:
-                # raise ValueError(
-                    # "Direction specified as a string must be one of the following, in any case, with whitespace, underscores, or dashes:\n"
-                    # "'IN', 'DEVICE_TO_HOST', 'OUT', 'HOST_TO_DEVICE'"
-                # )
 
 
         elif isinstance(direction, int):
@@ -107,6 +95,15 @@ class USBRequestType(enum.IntEnum):
 
     @classmethod
     def parse(cls, req_type):
+        """
+        Parses a USB request type from a string or number. Strings are accepted in any case.
+
+        :param req_type:
+            A string or integer describing the request type.
+            Valid strings are ``"STANDARD"``, ``"CLASS"``, ``"VENDOR"``, and ``"RESERVED"``,
+            in any case.
+        :type req_type: str, int, or USBRequestType
+        """
 
         if isinstance(req_type, cls):
             return req_type
@@ -142,7 +139,7 @@ class USBRequestType(enum.IntEnum):
 
 
 class USBRecipient(enum.IntEnum):
-    """ This class is used internally, and should not be considered a public part of the API. """
+    """ The recipient field of bmRequestType. """
 
     DEVICE    = 0x00
     INTERFACE = 0x01
@@ -152,6 +149,15 @@ class USBRecipient(enum.IntEnum):
 
     @classmethod
     def parse(cls, recipient):
+        """
+        Parses a USB recipient from a string or number. Strings are accepted in any case.
+
+        :param recipient:
+            A string or integer describing the recipient.
+            Valid strings are: ``"DEVICE"``, ``"INTERFACE"``, ``"ENDPOINT"``, ``"OTHER"``, and
+            ``"RESERVED"``, in any case.
+        :type recipient: str, int, or USBRecipient
+        """
 
         if isinstance(recipient, cls):
             return recipient
@@ -187,6 +193,7 @@ class USBRecipient(enum.IntEnum):
 
 
 class USBRequestNumber(enum.IntEnum):
+    """ The bRequest field of setup data. """
 
     GET_STATUS        = 0x00
     CLEAR_FEATURE     = 0x01
@@ -203,6 +210,15 @@ class USBRequestNumber(enum.IntEnum):
 
     @classmethod
     def parse(cls, request):
+        """
+        Parses a USB request number from a string or number. Strings are accepted in any case,
+        with underscores, dashes, or even spaces.
+
+        :param request:
+            A string or integer describing the request.
+            Valid strings are the enum constants of this class, in any case.
+        :type request: str, int, or USBRequestNumber
+        """
 
         if isinstance(request, cls):
             return request
@@ -241,7 +257,7 @@ class USBDescriptorType(enum.IntEnum):
         Parses a descriptor type from a string or number. Strings are accepted in any case.
 
         :param descriptor_type: A string or integer describing the descriptor type.
-        :type descriptor_type: str or int
+        :type descriptor_type: str, int, or USBDescriptorType
         """
 
         if isinstance(descriptor_type, cls):
@@ -328,6 +344,43 @@ class USBDevice:
 
 
     def control_request(self, *, direction, req_type, recipient, request, value, index, length=None, data=None, **kwargs):
+        """ Wrapper for usb.core.Device.ctrl_transfer which has shortcut kwargs for convenience.
+
+        :param direction:
+            The direction field of bmRequestType. Accepts everything ``USBDirection.parse()`` does.
+        :type direction: str, int, or USBDirection
+
+        :param req_type:
+            The type field of bmRequestType. Accepts everything ``USBRequestType.parse()`` does.
+        :type req_type: str, int, or USBRequestType
+        :param recipient:
+            The recipient field of bmRequestType. Accepts everything ``USBRecipient.parse()`` does.
+        :type recipient: str, int, or USBRecipient
+
+        :param request:
+            The bRequest field of setup data. Accepts everything ``USBRequestNumber.parse()`` does.
+        :type request: str, int, or USBRequestNumber
+
+        :param value:
+            The wValue field of setup data. Specific to the request you're performing.
+        :type value: int
+
+        :param index:
+            The wIndex field of setup data. Specific to the request you're performing.
+        :type index: int
+
+        :param length:
+            How many bytes you want to request from the device or send to the device.
+            If specified for OUT requests, your specified data is automatically truncated to this
+            length.
+            If specified for IN requests, this length is sent as part of the USB request.
+            Optional in both cases. If not specified for IN requests, inferred as 0xFF (max length).
+        :type length: Optional[int]
+
+        :param data:
+            The data to send for OUT requests.
+        :type data: bytes
+        """
 
         direction = USBDirection.parse(direction)
         req_type = USBRequestType.parse(req_type)
