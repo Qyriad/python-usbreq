@@ -20,7 +20,7 @@ The core of this library is the [`USBDevice`](./usbreq/__init__.py#L232) class, 
 	- `data` cannot be specified for IN requests
 	- `length` is optional and inferred from data for OUT requests, or set to maximum (0xFF) for IN requests.
 		- If specified for OUT requests, only the specified amount of `data` will be sent to the device.
-- `USBDevice.get_descriptor(self, *, type, index, langid=None, length, find_intended=False)
+- `USBDevice.get_descriptor(self, *, type, index, langid=None, length, find_intended=False)`
 	- `type` is accepted as a string (in any case), an int, or an instance of `usbreq.USBDescriptorType`.
 	- `index` is optional and defaults to 0.
 	- `langid` only makes sense if `type="string"`, and is optional there as well (defaults to 0)
