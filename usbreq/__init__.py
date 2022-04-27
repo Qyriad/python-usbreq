@@ -10,6 +10,17 @@ def find(*args, **kwargs):
     return USBDevice(usb.core.find(*args, **kwargs))
 
 
+class DummyEnum(int):
+    """ Dummy class that wraps an int but has a .value attribute like an enum.
+
+    For cases where an enum is expected but you need a value outside of that enum.
+    """
+
+    @property
+    def value(self):
+        return self
+
+
 class USBDirection(enum.IntEnum):
     """ The direction field of bmRequestType. """
 
@@ -33,7 +44,10 @@ class USBDirection(enum.IntEnum):
         :type direction: str or int
         """
 
-        if isinstance(direction, str):
+        if isinstance(direction, cls):
+            return direction
+
+        elif isinstance(direction, str):
 
             direction = direction.upper().replace('-', '_').replace(' ', '_')
             return cls[direction]
@@ -92,7 +106,10 @@ class USBRequestType(enum.IntEnum):
     @classmethod
     def parse(cls, req_type):
 
-        if isinstance(req_type, str):
+        if isinstance(req_type, cls):
+            return req_type
+
+        elif isinstance(req_type, str):
 
             req_type = req_type.upper()
             return cls[req_type]
@@ -134,7 +151,10 @@ class USBRecipient(enum.IntEnum):
     @classmethod
     def parse(cls, recipient):
 
-        if isinstance(recipient, str):
+        if isinstance(recipient, cls):
+            return recipient
+
+        elif isinstance(recipient, str):
 
             recipient = recipient.upper()
             return cls[recipient]
@@ -182,14 +202,20 @@ class USBRequestNumber(enum.IntEnum):
     @classmethod
     def parse(cls, request):
 
-        if isinstance(request, str):
+        if isinstance(request, cls):
+            return request
+
+        elif isinstance(request, str):
 
             request = inflection.underscore(request).upper()
             return cls[request]
 
         elif isinstance(request, int):
 
-            return cls(request)
+            try:
+                return cls(request)
+            except ValueError:
+                return DummyEnum(request)
 
         else:
             raise TypeError(
@@ -216,12 +242,18 @@ class USBDescriptorType(enum.IntEnum):
         :type descriptor_type: str or int
         """
 
-        if isinstance(descriptor_type, str):
+        if isinstance(descriptor_type, cls):
+            return descriptor_type
+
+        elif isinstance(descriptor_type, str):
             descriptor_type = descriptor_type.upper()
             return cls[descriptor_type]
 
         elif isinstance(descriptor_type, int):
-            return cls(descriptor_type)
+            try:
+                return cls(descriptor_type)
+            except ValueError:
+                return DummyEnum(descriptor_type)
 
         else:
             raise TypeError(
