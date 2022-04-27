@@ -1,6 +1,8 @@
 """ Main module for usbreq. You mostly want the methods of :py:class:`USBDevice`. """
 
+import sys
 import enum
+import warnings
 
 import usb.core
 import inflection
@@ -273,7 +275,59 @@ class USBDevice:
         return getattr(self.dev, attr)
 
 
-    def control_request(self, *, direction, req_type, recipient, request, value, index, length=None, data=None):
+    def _get_descriptor(self, *, descriptor_type: USBDescriptorType, index: int, langid=None,
+            length=None, req_type='STANDARD', recipient='DEVICE'):
+
+        wValue = (descriptor_type.value << 8) | index
+        wIndex = langid if langid is not None else 0
+
+        return self.control_request(
+            direction='IN',
+            req_type=req_type,
+            recipient=recipient,
+            request='GET_DESCRIPTOR',
+            value=wValue,
+            index=wIndex,
+            length=length,
+        )
+
+
+    def _find_descriptor_in_chain(self, *, data, descriptor_type: USBDescriptorType, index: int):
+
+        current_bytes = data[0:]
+        count_of_type = 0
+
+        while True:
+
+            # First, get the first two fields that every descriptor is guaranteed to have.
+            current_length = current_bytes[0]
+            current_type = current_bytes[1]
+
+            # If this descriptor type matches the one the user asked for, increment
+            # the number of descriptors we have seen of that type.
+            if current_type == descriptor_type.value:
+                count_of_type += 1
+
+                # With that, if the number of descriptors we've seen of this type
+                # is 1 more than the index we're looking for, then this must be the
+                # right descriptor. Return the current data bounded by the length
+                # of this descriptor we parsed out earlier.
+                if (count_of_type - 1) == index:
+                    return current_bytes[:current_length]
+
+            # If we didn't return this descriptor, then we need to move onto the next one,
+            # by advancing the start of our data by the length of this descriptor.
+            try:
+                current_bytes = current_bytes[current_length:]
+            except IndexError:
+                # If we've run out of data, however, then we must not have found the
+                # descriptor the user is looking for. Sorry!
+                raise ValueError(
+                    f"Descriptor of type {descriptor_type} was not found in data: {data}"
+                )
+
+
+    def control_request(self, *, direction, req_type, recipient, request, value, index, length=None, data=None, **kwargs):
 
         direction = USBDirection.parse(direction)
         req_type = USBRequestType.parse(req_type)
@@ -285,9 +339,10 @@ class USBDevice:
             recipient.value
         )
 
-        bRequest = USBRequestNumber.parse(request).value
-        wValue = value
-        wIndex = index
+        bRequest = USBRequestNumber.parse(kwargs.get("bRequest", request))
+        wValue = kwargs.get("wValue", value)
+        wIndex = kwargs.get("wIndex", index)
+        length = kwargs.get("wLength", length)
 
         if direction == USBDirection.IN and data is not None:
             raise ValueError("Incompatible arguments: direction == IN, data != None")
@@ -314,35 +369,120 @@ class USBDevice:
             ))
 
 
-    def get_descriptor(self, *, type, index=0, langid=None, length=None):
+    def get_descriptor(self, *, type, index=0, langid=None, length=None,
+            req_type='STANDARD', recipient='DEVICE', find_intended=False):
+
         """
         Shortcut for the GET_DESCRIPTOR standard request.
 
-        Note: A list of known descriptor types can be found at :py:class:`USBDescriptorType`.
-
         :param type: The type of descriptor to get. Accepts as a string in any case, or a number.
-        :type kind: str or int
+        :type kind: str, int, or USBDescriptorType
+
         :param index: Which descriptor of that type to get, if applicable.
         :type index: int
+
         :param langid: Optional language ID for a string descriptor, if applicable.
         :type langid: Optional[int]
+
+        :param find_intended: USB does not allow you to individually and directly request
+        interface or endpoint descriptors. Specifying `find_intended=True` asks this method,
+        instead of making the actual control request that would correspond to the passed
+        arguments, to make the request that includes the descriptor you specified with `type`
+        and `index`, and then parse the device-returned data to find that descriptor and
+        return only that instead.
+        This is experimental and may have unexpected results!
+        :type find_intended: bool
+
         :return: The bytes of the descriptor.
         :rtype: bytes
         :raises ValueError: if ``type`` as a string or number does not describe a known descriptor type
-        :raises TypeError: if ``type`` is a type other than ``str`` or ``int``
         """
 
         descriptor_type = USBDescriptorType.parse(type)
 
-        wValue = (descriptor_type.value << 8) | index
-        wIndex = langid if langid is not None else 0
+        # If the user hasn't asked us to cheat, then we're just doing what it says on the tin.
+        if not find_intended:
 
-        return self.control_request(
-            direction='IN',
-            req_type='STANDARD',
-            recipient='DEVICE',
-            request='GET_DESCRIPTOR',
-            value=wValue,
-            index=wIndex,
-            length=length,
-        )
+            return self._get_descriptor(
+                descriptor_type=descriptor_type,
+                index=index,
+                langid=langid,
+                length=length,
+                req_type=req_type,
+                recipient=recipient
+            )
+
+            # return self.control_request(
+                # direction='IN',
+                # req_type=req_type,
+                # recipient=recipient,
+                # request='GET_DESCRIPTOR',
+                # value=wValue,
+                # index=wIndex,
+                # length=length,
+            # )
+
+        # If the user _has_ asked us to cheat, then we have some work to do.
+        else:
+
+            available_directly = [
+                USBDescriptorType.DEVICE,
+                USBDescriptorType.CONFIGURATION,
+                USBDescriptorType.STRING,
+            ]
+
+            if descriptor_type in available_directly:
+                warnings.warn(
+                    f"Specified descriptor type {descriptor_type} does not require 'cheating', "
+                    "but find_intended was given as True. This may not have been your intention!"
+                )
+                return self._get_descriptor(
+                    descriptor_type=descriptor_type,
+                    index=index,
+                    langid=langid,
+                    length=length,
+                    req_type=req_type,
+                    recipient=recipient
+                )
+
+
+            # Alright, with that out of the way, let's get to the meat of things.
+            # First, request just the configuration descriptor itself, so we can
+            # read its wTotalLength field.
+            configuration_descriptor = self._get_descriptor(
+                req_type='STANDARD',
+                recipient='DEVICE',
+                descriptor_type=USBDescriptorType.CONFIGURATION,
+                index=1,
+                length=9,
+            )
+
+            # config_total_len = struct.unpack("<h", configuration_descriptor[2:4])[0]
+            config_total_len = int.from_bytes(configuration_descriptor[2:4], byteorder='little')
+
+            # Now that we have that, get eeeeeverything that's attached to the configuration
+            # descriptor. Hopefully, one if its subordinate descriptors has what we're
+            # looking for.
+            descriptor_chain = self._get_descriptor(
+                req_type='STANDARD',
+                recipient='DEVICE',
+                descriptor_type=USBDescriptorType.CONFIGURATION,
+                index=1,
+                length=config_total_len,
+            )
+
+            # Sanity check.
+            if len(descriptor_chain) != config_total_len:
+                print(
+                    "Warning: device returned less ({}) than wTotalLength ({})!"
+                        .format(len(descriptor_chain), config_total_len),
+                    file=sys.stderr,
+                )
+                print("Warning: this is kind of weird!", file=sys.stderr)
+
+
+            return self._find_descriptor_in_chain(
+                data=descriptor_chain,
+                descriptor_type=descriptor_type,
+                index=index
+            )
