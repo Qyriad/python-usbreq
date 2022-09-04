@@ -46,16 +46,6 @@ exclude_patterns = []
 # Order members as they are in source.
 autodoc_member_order = 'bysource'
 
-
-def autodoc_skip_member_handler(app, what, name, obj, skip, options):
-    if obj.__doc__ and ':skip:' in obj.__doc__:
-        return True
-    return skip
-
-def setup(app):
-    app.connect('autodoc-skip-member', autodoc_skip_member_handler)
-
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

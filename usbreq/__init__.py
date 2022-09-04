@@ -17,8 +17,6 @@ class DummyEnum(int):
     """ Dummy class that wraps an int but has a .value attribute like an enum.
 
     For cases where an enum is expected but you need a value outside of that enum.
-
-    :skip:
     """
 
     @property
@@ -497,16 +495,6 @@ class USBDevice:
                 req_type=req_type,
                 recipient=recipient
             )
-
-            # return self.control_request(
-                # direction='IN',
-                # req_type=req_type,
-                # recipient=recipient,
-                # request='GET_DESCRIPTOR',
-                # value=wValue,
-                # index=wIndex,
-                # length=length,
-            # )
 
         # If the user _has_ asked us to cheat, then we have some work to do.
         else:
