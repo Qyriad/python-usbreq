@@ -44,6 +44,8 @@ class USBDirection(enum.IntEnum):
             Valid strings are: ``"OUT"``, ``"IN"``, ``"HOST_TO_DEVICE"``, and ``"DEVICE_TO_HOST"``, in any case,
             and with underscores, dashes, or spaces.
         :type direction: str, int, or USBDirection
+
+        :rtype: USBDirection
         """
 
         if isinstance(direction, cls):
@@ -103,6 +105,8 @@ class USBRequestType(enum.IntEnum):
             Valid strings are ``"STANDARD"``, ``"CLASS"``, ``"VENDOR"``, and ``"RESERVED"``,
             in any case.
         :type req_type: str, int, or USBRequestType
+
+        :rtype: USBRequestType
         """
 
         if isinstance(req_type, cls):
@@ -157,6 +161,8 @@ class USBRecipient(enum.IntEnum):
             Valid strings are: ``"DEVICE"``, ``"INTERFACE"``, ``"ENDPOINT"``, ``"OTHER"``, and
             ``"RESERVED"``, in any case.
         :type recipient: str, int, or USBRecipient
+
+        :rtype: USBRecipient
         """
 
         if isinstance(recipient, cls):
@@ -218,6 +224,8 @@ class USBRequestNumber(enum.IntEnum):
             A string or integer describing the request.
             Valid strings are the enum constants of this class, in any case.
         :type request: str, int, or USBRequestNumber
+
+        :rtype: USBRequestNumber
         """
 
         if isinstance(request, cls):
@@ -258,6 +266,8 @@ class USBDescriptorType(enum.IntEnum):
 
         :param descriptor_type: A string or integer describing the descriptor type.
         :type descriptor_type: str, int, or USBDescriptorType
+
+        :rtype: USBDescriptorType
         """
 
         if isinstance(descriptor_type, cls):
