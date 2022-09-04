@@ -43,6 +43,18 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+# Order members as they are in source.
+autodoc_member_order = 'bysource'
+
+
+def autodoc_skip_member_handler(app, what, name, obj, skip, options):
+    if obj.__doc__ and ':skip:' in obj.__doc__:
+        return True
+    return skip
+
+def setup(app):
+    app.connect('autodoc-skip-member', autodoc_skip_member_handler)
+
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -9,6 +9,7 @@ import inflection
 
 
 def find(*args, **kwargs):
+    """ Creates a :py:class:`USBDevice` using the same logic and arguments as :py:meth:`usb.core.find`. """
     return USBDevice(usb.core.find(*args, **kwargs))
 
 
@@ -16,6 +17,8 @@ class DummyEnum(int):
     """ Dummy class that wraps an int but has a .value attribute like an enum.
 
     For cases where an enum is expected but you need a value outside of that enum.
+
+    :skip:
     """
 
     @property
@@ -24,7 +27,17 @@ class DummyEnum(int):
 
 
 class USBDirection(enum.IntEnum):
-    """ The direction field of bmRequestType. """
+    """ The direction field of bmRequestType.
+
+    .. attribute:: OUT
+        :annotation: = 0x00
+    .. attribute:: HOST_TO_DEVICE
+        :annotation: = 0x00
+    .. attribute:: IN
+        :annotation: = 0x80
+    .. attribute:: DEVICE_TO_HOST
+        :annotation: = 0x80
+    """
 
     OUT = 0x00
     IN  = 0x80
@@ -77,8 +90,7 @@ class USBDirection(enum.IntEnum):
 
 
 class USBRequestType(enum.IntEnum):
-    """
-    The type field of bmRequestType.
+    """ The type field of bmRequestType.
 
     .. attribute:: STANDARD
         :annotation: = 0x00
@@ -250,7 +262,19 @@ class USBRequestNumber(enum.IntEnum):
 
 
 class USBDescriptorType(enum.IntEnum):
-    """ Descriptor types valid for :py:meth:`USBDevice.get_descriptor`."""
+    """ Descriptor types valid for :py:meth:`USBDevice.get_descriptor`.
+
+    .. attribute:: DEVICE
+        :annotation: = 0x01
+    .. attribute:: CONFIGURATION
+        :annotation: = 0x02
+    .. attribute:: STRING
+        :annotation: = 0x03
+    .. attribute:: INTERFACE
+        :annotation: = 0x04
+    .. attribute:: ENDPOINT
+        :annotation: = 0x05
+    """
 
     DEVICE        = 0x01
     CONFIGURATION = 0x02
