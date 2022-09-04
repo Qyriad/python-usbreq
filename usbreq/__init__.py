@@ -347,18 +347,18 @@ class USBDevice:
         """ Wrapper for usb.core.Device.ctrl_transfer which has shortcut kwargs for convenience.
 
         :param direction:
-            The direction field of bmRequestType. Accepts everything ``USBDirection.parse()`` does.
+            The direction field of bmRequestType. Accepts everything :py:meth:`USBDirection.parse` does.
         :type direction: str, int, or USBDirection
 
         :param req_type:
-            The type field of bmRequestType. Accepts everything ``USBRequestType.parse()`` does.
+            The type field of bmRequestType. Accepts everything :py:meth:`USBRequestType.parse` does.
         :type req_type: str, int, or USBRequestType
         :param recipient:
-            The recipient field of bmRequestType. Accepts everything ``USBRecipient.parse()`` does.
+            The recipient field of bmRequestType. Accepts everything :py:meth:`USBRecipient.parse` does.
         :type recipient: str, int, or USBRecipient
 
         :param request:
-            The bRequest field of setup data. Accepts everything ``USBRequestNumber.parse()`` does.
+            The bRequest field of setup data. Accepts everything :py:meth:`USBRequestNumber.parse` does.
         :type request: str, int, or USBRequestNumber
 
         :param value:
