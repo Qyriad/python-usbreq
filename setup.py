@@ -8,6 +8,7 @@ setup(
     author='Mikaela Szekely',
     author_email='mikaela.szekely@qyriad.me',
     description='A USB library for humans',
+    readme = 'README.md',
     platforms='any',
     packages=find_packages(),
     install_requires=['pyusb', 'inflection'],
