@@ -1,4 +1,4 @@
-# usbreq — a PyUSB wrapper for rapid testing and prototyping
+# usbreq.py — a USB library for humans
 
 usbreq is a WIP simple helper Python module for quick scripts and tests with USB devices.
 It is not intended for stable programs.
@@ -6,7 +6,7 @@ It is not intended for stable programs.
 
 ## Usage
 
-The core of this library is the [`USBDevice`](./usbreq/__init__.py#L232) class, which wraps
+The core of this library is the [`USBDevice`](./usbreq/__init__.py#L314) class, which wraps
 [PyUSB's](https://github.com/pyusb/pyusb) `usb.core.Device` class, and adds additional shortcut methods
 (currently only two):
 
@@ -33,5 +33,4 @@ The core of this library is the [`USBDevice`](./usbreq/__init__.py#L232) class, 
 
 ## Documentation
 
-Hopefully at some point I will solve Sphinx's riddle, but for now, this library is only really documented in this
-readme, and in the code via docstrings. Sorry!
+Usage examples pending, but API documentation is live on [RTD](https://usbreqpy.readthedocs.io).
