@@ -424,9 +424,7 @@ class USBDevice:
 
     def get_descriptor(self, *, type, index=0, langid=None, length=None,
             req_type='STANDARD', recipient='DEVICE', find_intended=False):
-
-        """
-        Shortcut for the GET_DESCRIPTOR standard request.
+        """ Shortcut for the GET_DESCRIPTOR standard request.
 
         :param type: The type of descriptor to get. Accepts as a string in any case, or a number.
         :type kind: str, int, or USBDescriptorType
@@ -437,13 +435,14 @@ class USBDevice:
         :param langid: Optional language ID for a string descriptor, if applicable.
         :type langid: Optional[int]
 
-        :param find_intended: USB does not allow you to individually and directly request
-        interface or endpoint descriptors. Specifying `find_intended=True` asks this method,
-        instead of making the actual control request that would correspond to the passed
-        arguments, to make the request that includes the descriptor you specified with `type`
-        and `index`, and then parse the device-returned data to find that descriptor and
-        return only that instead.
-        This is experimental and may have unexpected results!
+        :param find_intended:
+            USB does not allow you to individually and directly request
+            interface or endpoint descriptors. Specifying `find_intended=True` asks this method,
+            instead of making the actual control request that would correspond to the passed
+            arguments, to make the request that includes the descriptor you specified with `type`
+            and `index`, and then parse the device-returned data to find that descriptor and
+            return only that instead.
+            This is experimental and may have unexpected results!
         :type find_intended: bool
 
         :return: The bytes of the descriptor.
@@ -527,12 +526,10 @@ class USBDevice:
             # Sanity check.
             if len(descriptor_chain) != config_total_len:
                 print(
-                    "Warning: device returned less ({}) than wTotalLength ({})!"
+                    "Warning: device returned less ({}) than wTotalLength ({})! This is kind of weird!"
                         .format(len(descriptor_chain), config_total_len),
                     file=sys.stderr,
                 )
-                print("Warning: this is kind of weird!", file=sys.stderr)
-
 
             return self._find_descriptor_in_chain(
                 data=descriptor_chain,
