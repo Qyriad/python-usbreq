@@ -343,7 +343,7 @@ class USBDevice:
                 )
 
 
-    def control_request(self, *, direction, req_type, recipient, request, value, index, length=None, data=None, **kwargs):
+    def control_request(self, *, direction, req_type, recipient, request, value=0, index=0, length=None, data=None, **kwargs):
         """ Wrapper for usb.core.Device.ctrl_transfer which has shortcut kwargs for convenience.
 
         :param direction:
