@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='usbreq',
-    version='0.1',
+    version='0.2',
     license='MIT',
     url='https://github.com/Qyriad/python-usbreq',
     author='Mikaela Szekely',
     author_email='mikaela.szekely@qyriad.me',
-    description='A PyUSB wrapper library for quick testing and prototyping',
+    description='A USB library for humans',
     platforms='any',
     packages=find_packages(),
     install_requires=['pyusb', 'inflection'],
