@@ -10,6 +10,7 @@ setup(
     description='A USB library for humans',
     readme = 'README.md',
     platforms='any',
+    python_requires='>= 3.9',
     packages=find_packages(),
     install_requires=['pyusb', 'inflection'],
     setup_requires=['setuptools'],
