@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='usbreq',
-    version='0.2',
+    version='0.2.1',
     license='MIT',
     url='https://github.com/Qyriad/python-usbreq',
     author='Mikaela Szekely',
@@ -14,16 +14,20 @@ setup(
     packages=find_packages(),
     install_requires=['pyusb', 'inflection'],
     setup_requires=['setuptools'],
+    extras_require={
+        'docs': 'sphinx-rtd-theme',
+    },
 
     classifiers = [
         'Programming Language :: Python',
-        'Development Status :: 1 - Planning',
+        'Development Status :: 3 - Alpha',
         'Natural Language :: English',
+        'License :: OSI Approved :: MIT License',
         'Environment :: Console',
-        'Environment :: Plugins',
         'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering',
+        'Topic :: Software Development',
+        'Topic :: System :: Hardware :: Universal Serial Bus (USB)',
     ],
 )
