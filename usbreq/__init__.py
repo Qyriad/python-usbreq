@@ -459,7 +459,7 @@ class USBDevice:
         """ Shortcut for the GET_DESCRIPTOR standard request.
 
         :param type: The type of descriptor to get. Accepts as a string in any case, or a number.
-        :type kind: str, int, or USBDescriptorType
+        :type type: str, int, or USBDescriptorType
 
         :param index: Which descriptor of that type to get, if applicable.
         :type index: int
