@@ -3,6 +3,7 @@
 import sys
 import enum
 import warnings
+from typing import Union, Self
 
 import usb.core
 import inflection
@@ -45,7 +46,7 @@ class USBDirection(enum.IntEnum):
 
 
     @classmethod
-    def parse(cls, direction):
+    def parse(cls, direction: Union[str, int, Self]):
         """
         Parses a USB direction from a string or number. Strings are accepted in any case,
         with underscores, dashes, or even spaces.
@@ -54,7 +55,7 @@ class USBDirection(enum.IntEnum):
             A string or integer describing the descriptor type.
             Valid strings are: ``"OUT"``, ``"IN"``, ``"HOST_TO_DEVICE"``, and ``"DEVICE_TO_HOST"``, in any case,
             and with underscores, dashes, or spaces.
-        :type direction: str, int, or USBDirection
+        :type direction: Union[str, int, USBDirection]
 
         :rtype: USBDirection
         """
@@ -106,7 +107,7 @@ class USBRequestType(enum.IntEnum):
     RESERVED = 0x60
 
     @classmethod
-    def parse(cls, req_type):
+    def parse(cls, req_type: Union[str, int, Self]):
         """
         Parses a USB request type from a string or number. Strings are accepted in any case.
 
@@ -114,7 +115,7 @@ class USBRequestType(enum.IntEnum):
             A string or integer describing the request type.
             Valid strings are ``"STANDARD"``, ``"CLASS"``, ``"VENDOR"``, and ``"RESERVED"``,
             in any case.
-        :type req_type: str, int, or USBRequestType
+        :type req_type: Union[str, int, USBRequestType]
 
         :rtype: USBRequestType
         """
@@ -162,7 +163,7 @@ class USBRecipient(enum.IntEnum):
     RESERVED  = 0x04
 
     @classmethod
-    def parse(cls, recipient):
+    def parse(cls, recipient: Union[str, int, Self]):
         """
         Parses a USB recipient from a string or number. Strings are accepted in any case.
 
@@ -170,7 +171,7 @@ class USBRecipient(enum.IntEnum):
             A string or integer describing the recipient.
             Valid strings are: ``"DEVICE"``, ``"INTERFACE"``, ``"ENDPOINT"``, ``"OTHER"``, and
             ``"RESERVED"``, in any case.
-        :type recipient: str, int, or USBRecipient
+        :type recipient: Union[str, int, USBRecipient]
 
         :rtype: USBRecipient
         """
@@ -225,7 +226,7 @@ class USBRequestNumber(enum.IntEnum):
 
 
     @classmethod
-    def parse(cls, request):
+    def parse(cls, request: Union[str, int, Self]):
         """
         Parses a USB request number from a string or number. Strings are accepted in any case,
         with underscores, dashes, or even spaces.
@@ -233,7 +234,7 @@ class USBRequestNumber(enum.IntEnum):
         :param request:
             A string or integer describing the request.
             Valid strings are the enum constants of this class, in any case.
-        :type request: str, int, or USBRequestNumber
+        :type request: Union[str, int, USBRequestNumber]
 
         :rtype: USBRequestNumber
         """
@@ -282,12 +283,12 @@ class USBDescriptorType(enum.IntEnum):
 
 
     @classmethod
-    def parse(cls, descriptor_type):
+    def parse(cls, descriptor_type: Union[str, int, Self]):
         """
         Parses a descriptor type from a string or number. Strings are accepted in any case.
 
         :param descriptor_type: A string or integer describing the descriptor type.
-        :type descriptor_type: str, int, or USBDescriptorType
+        :type descriptor_type: Union[str, int, USBDescriptorType]
 
         :rtype: USBDescriptorType
         """
@@ -324,7 +325,8 @@ class USBDevice:
 
 
     def _get_descriptor(self, *, descriptor_type: USBDescriptorType, index: int, langid=None,
-            length=None, req_type='STANDARD', recipient='DEVICE'):
+        length=None, req_type='STANDARD', recipient='DEVICE',
+    ):
 
         wValue = (descriptor_type.value << 8) | index
         wIndex = langid if langid is not None else 0
@@ -380,18 +382,18 @@ class USBDevice:
 
         :param direction:
             The direction field of bmRequestType. Accepts everything :py:meth:`USBDirection.parse` does.
-        :type direction: str, int, or USBDirection
+        :type direction: Union[str, int, USBDirection]
 
         :param req_type:
             The type field of bmRequestType. Accepts everything :py:meth:`USBRequestType.parse` does.
-        :type req_type: str, int, or USBRequestType
+        :type req_type: Union[str, int, USBRequestType]
         :param recipient:
             The recipient field of bmRequestType. Accepts everything :py:meth:`USBRecipient.parse` does.
-        :type recipient: str, int, or USBRecipient
+        :type recipient: Union[str, int, USBRecipient]
 
         :param request:
             The bRequest field of setup data. Accepts everything :py:meth:`USBRequestNumber.parse` does.
-        :type request: str, int, or USBRequestNumber
+        :type request: Union[str, int, USBRequestNumber]
 
         :param value:
             The wValue field of setup data. Specific to the request you're performing.
@@ -437,6 +439,9 @@ class USBDevice:
 
         if direction == USBDirection.OUT:
 
+            if data is None:
+                raise ValueError("OUT transfer specified but data=None")
+
             if length is not None:
                 data = data[0..length]
 
@@ -455,11 +460,12 @@ class USBDevice:
 
 
     def get_descriptor(self, *, type, index=0, langid=None, length=None,
-            req_type='STANDARD', recipient='DEVICE', find_intended=False):
+        req_type='STANDARD', recipient='DEVICE', find_intended=False,
+    ):
         """ Shortcut for the GET_DESCRIPTOR standard request.
 
         :param type: The type of descriptor to get. Accepts as a string in any case, or a number.
-        :type type: str, int, or USBDescriptorType
+        :type type: Union[str, int, USBDescriptorType]
 
         :param index: Which descriptor of that type to get, if applicable.
         :type index: int
