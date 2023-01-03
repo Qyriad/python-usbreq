@@ -3,7 +3,7 @@
 import sys
 import enum
 import warnings
-from typing import Union, Optional, Self
+from typing import Union, Optional
 
 import usb.core
 import inflection
@@ -46,7 +46,7 @@ class USBDirection(enum.IntEnum):
 
 
     @classmethod
-    def parse(cls, direction: Union[str, int, Self]):
+    def parse(cls, direction: Union[str, int, 'USBDirection']):
         """
         Parses a USB direction from a string or number. Strings are accepted in any case,
         with underscores, dashes, or even spaces.
@@ -107,7 +107,7 @@ class USBRequestType(enum.IntEnum):
     RESERVED = 0x60
 
     @classmethod
-    def parse(cls, req_type: Union[str, int, Self]):
+    def parse(cls, req_type: Union[str, int, 'USBRequestType']):
         """
         Parses a USB request type from a string or number. Strings are accepted in any case.
 
@@ -163,7 +163,7 @@ class USBRecipient(enum.IntEnum):
     RESERVED  = 0x04
 
     @classmethod
-    def parse(cls, recipient: Union[str, int, Self]):
+    def parse(cls, recipient: Union[str, int, 'USBRecipient']):
         """
         Parses a USB recipient from a string or number. Strings are accepted in any case.
 
@@ -226,7 +226,7 @@ class USBRequestNumber(enum.IntEnum):
 
 
     @classmethod
-    def parse(cls, request: Union[str, int, Self]):
+    def parse(cls, request: Union[str, int, 'USBRequestNumber']):
         """
         Parses a USB request number from a string or number. Strings are accepted in any case,
         with underscores, dashes, or even spaces.
@@ -283,7 +283,7 @@ class USBDescriptorType(enum.IntEnum):
 
 
     @classmethod
-    def parse(cls, descriptor_type: Union[str, int, Self]):
+    def parse(cls, descriptor_type: Union[str, int, 'USBDescriptorType']):
         """
         Parses a descriptor type from a string or number. Strings are accepted in any case.
 
