@@ -3,7 +3,7 @@
 import sys
 import enum
 import warnings
-from typing import Union, Self
+from typing import Union, Optional, Self
 
 import usb.core
 import inflection
@@ -377,7 +377,17 @@ class USBDevice:
                 )
 
 
-    def control_request(self, *, direction, req_type, recipient, request, value=0, index=0, length=None, data=None, **kwargs):
+    def control_request(self, *,
+        direction: Union[str, int, USBDirection],
+        req_type: Union[str, int, USBRequestType],
+        recipient: Union[str, int, USBRecipient],
+        request: Union[str, int, USBRequestNumber],
+        value: int = 0,
+        index: int = 0,
+        length: Optional[int] = None,
+        data: Optional[bytes] = None,
+        **kwargs,
+    ):
         """ Wrapper for usb.core.Device.ctrl_transfer which has shortcut kwargs for convenience.
 
         :param direction:
@@ -387,20 +397,24 @@ class USBDevice:
         :param req_type:
             The type field of bmRequestType. Accepts everything :py:meth:`USBRequestType.parse` does.
         :type req_type: Union[str, int, USBRequestType]
+
         :param recipient:
             The recipient field of bmRequestType. Accepts everything :py:meth:`USBRecipient.parse` does.
         :type recipient: Union[str, int, USBRecipient]
 
         :param request:
             The bRequest field of setup data. Accepts everything :py:meth:`USBRequestNumber.parse` does.
+            Also passable as ``bRequest``.
         :type request: Union[str, int, USBRequestNumber]
 
         :param value:
             The wValue field of setup data. Specific to the request you're performing.
+            Also passable as ``wValue``.
         :type value: int
 
         :param index:
             The wIndex field of setup data. Specific to the request you're performing.
+            Also passable as ``wIndex``.
         :type index: int
 
         :param length:
