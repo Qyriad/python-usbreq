@@ -4,6 +4,7 @@ import sys
 import enum
 import warnings
 from typing import Union, Optional
+from dataclasses import dataclass
 
 import usb.core
 import inflection
@@ -44,6 +45,8 @@ class USBDirection(enum.IntEnum):
     HOST_TO_DEVICE = 0x00
     DEVICE_TO_HOST = 0x80
 
+    MASK = 0x80
+
 
     @classmethod
     def parse(cls, direction: Union[str, int, 'USBDirection']):
@@ -71,7 +74,7 @@ class USBDirection(enum.IntEnum):
 
         elif isinstance(direction, int):
 
-            masked = direction & 0x80
+            masked = direction & cls.MASK
 
             if direction == 0 or masked == 0x00:
                 return USBDirection.OUT
@@ -106,6 +109,8 @@ class USBRequestType(enum.IntEnum):
     VENDOR   = 0x40
     RESERVED = 0x60
 
+    MASK = 0x60
+
     @classmethod
     def parse(cls, req_type: Union[str, int, 'USBRequestType']):
         """
@@ -130,7 +135,7 @@ class USBRequestType(enum.IntEnum):
 
         elif isinstance(req_type, int):
 
-            masked = req_type & 0x60
+            masked = req_type & cls.MASK
 
             if req_type == 0 or masked == cls.STANDARD:
                 return cls.STANDARD
@@ -162,6 +167,9 @@ class USBRecipient(enum.IntEnum):
     OTHER     = 0x03
     RESERVED  = 0x04
 
+    MASK = 0x1F
+
+
     @classmethod
     def parse(cls, recipient: Union[str, int, 'USBRecipient']):
         """
@@ -186,7 +194,7 @@ class USBRecipient(enum.IntEnum):
 
         elif isinstance(recipient, int):
 
-            masked = recipient & 0x1F
+            masked = recipient & cls.MASK
 
             if recipient == 0 or masked == cls.DEVICE:
                 return cls.DEVICE
@@ -207,6 +215,32 @@ class USBRecipient(enum.IntEnum):
             raise TypeError(
                 "Request recipient must either be specified as a string or an int"
             )
+
+
+@dataclass
+class CombinedRequestTypeBitmap:
+    """ The combined fields of bmRequestType. """
+
+    req_type: USBRequestType
+    direction: USBDirection
+    recipient: USBRecipient
+
+    @classmethod
+    def parse(cls, value: Union[int, 'CombinedRequestTypeBitmap']):
+        """ Parses a combined bmRequestType from an integer. """
+
+        if isinstance(value, cls):
+            return value
+
+        req_type = USBRequestType.parse(value)
+        direction = USBDirection.parse(value)
+        recipient = USBRecipient.parse(value)
+
+        return cls(req_type=req_type, direction=direction, recipient=recipient)
+
+
+    def __int__(self):
+        return self.req_type.value | self.direction.value | self.recipient.value
 
 
 class USBRequestNumber(enum.IntEnum):
@@ -392,14 +426,17 @@ class USBDevice:
 
         :param direction:
             The direction field of bmRequestType. Accepts everything :py:meth:`USBDirection.parse` does.
+            Also passable as ``bmRequestType``.
         :type direction: Union[str, int, USBDirection]
 
         :param req_type:
             The type field of bmRequestType. Accepts everything :py:meth:`USBRequestType.parse` does.
+            Also passable as ``bmRequestType``.
         :type req_type: Union[str, int, USBRequestType]
 
         :param recipient:
             The recipient field of bmRequestType. Accepts everything :py:meth:`USBRecipient.parse` does.
+            Also passable as ``bmRequestType``.
         :type recipient: Union[str, int, USBRecipient]
 
         :param request:
@@ -430,15 +467,20 @@ class USBDevice:
         :type data: bytes
         """
 
-        direction = USBDirection.parse(direction)
-        req_type = USBRequestType.parse(req_type)
-        recipient = USBRecipient.parse(recipient)
+        bmRequestType = kwargs.get('bmRequestType', None)
+        if bmRequestType is not None:
 
-        bmRequestType = (
-            direction.value |
-            req_type.value |
-            recipient.value
-        )
+            bmRequestType = CombinedRequestTypeBitmap.parse(bmRequestType)
+            direction = bmRequestType.direction
+            req_type = bmRequestType.req_type
+            recipient = bmRequestType.recipient
+
+        else:
+
+            direction = USBDirection.parse(direction)
+            req_type = USBRequestType.parse(req_type)
+            recipient = USBRecipient.parse(recipient)
+            bmRequestType = CombinedRequestTypeBitmap(direction=direction, req_type=req_type, recipient=recipient)
 
         bRequest = USBRequestNumber.parse(kwargs.get("bRequest", request))
         wValue = kwargs.get("wValue", value)
@@ -459,7 +501,7 @@ class USBDevice:
             if length is not None:
                 data = data[0..length]
 
-            return self.ctrl_transfer(bmRequestType=bmRequestType, bRequest=bRequest,
+            return self.ctrl_transfer(bmRequestType=int(bmRequestType), bRequest=bRequest,
                 wValue=wValue, wIndex=wIndex, data_or_wLength=data,
             )
 
@@ -468,7 +510,7 @@ class USBDevice:
             if length is None:
                 length = 0xFF # Maxmimum length.
 
-            return bytes(self.ctrl_transfer(bmRequestType=bmRequestType, bRequest=bRequest,
+            return bytes(self.ctrl_transfer(bmRequestType=int(bmRequestType), bRequest=bRequest,
                 wValue=wValue, wIndex=wIndex, data_or_wLength=length,
             ))
 
