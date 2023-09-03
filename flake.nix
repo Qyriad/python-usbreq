@@ -46,6 +46,12 @@
         ];
       };
 
+      devShellPkgs = with pkgs.python3Packages; [
+        build
+        twine
+        ipython
+      ];
+
     in {
       packages.default = usbreq;
 
@@ -54,10 +60,17 @@
 
         inputsFrom = [ usbreq ];
 
-        packages = with pkgs.python3Packages; [
-          build
-          twine
-          ipython
+        packages = devShellPkgs;
+
+      };
+
+      devShells.lsp = pkgs.mkShell {
+        meta.description = "Like devShells.default, but with Pyright.";
+
+        inputsFrom = [ usbreq ];
+
+        packages = devShellPkgs ++ [
+          pkgs.pyright
         ];
 
       };
