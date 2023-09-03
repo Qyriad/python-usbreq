@@ -2,6 +2,7 @@
 
 import sys
 import enum
+import inspect
 import warnings
 from typing import Union, Optional
 
@@ -11,7 +12,17 @@ import inflection
 
 def find(*args, **kwargs):
     """ Creates a :py:class:`USBDevice` using the same logic and arguments as :py:meth:`usb.core.find`. """
-    return USBDevice(usb.core.find(*args, **kwargs))
+
+    res = usb.core.find(*args, **kwargs)
+
+    if inspect.isgenerator(res):
+        return map(lambda dev : USBDevice(dev), res)
+
+    if res is None:
+        return None
+
+    # Pyright doesn't appear to be smart enough to know that res can't be a generator here.
+    return USBDevice(res) # type: ignore
 
 
 class DummyEnum(int):
