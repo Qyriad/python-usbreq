@@ -7,14 +7,21 @@
     let
       pkgs = import nixpkgs { inherit system; };
 
-      intersectLists = pkgs.lib.lists.intersectLists;
-      forEach = pkgs.lib.lists.forEach;
+      inherit (builtins) attrValues foldl';
+      inherit (pkgs.lib.lists) intersectLists forEach;
 
       # Like "lib.lists.intersectLists" but takes a list of lists instead of two list arguments.
-      intersectAll = builtins.foldl' (a: b: a b) intersectLists;
+      intersectAll = foldl' (a: b: a b) intersectLists;
 
       # Takes a list of packages and returns the intersection of all platforms supported by those packages.
       intersectPlatforms = pkgs: intersectAll (forEach pkgs (pkg: pkg.meta.platforms));
+
+      usbreqDeps = attrValues {
+        inherit (pkgs.python3Packages)
+          pyusb
+          inflection
+        ;
+      };
 
       usbreq = pkgs.python3Packages.buildPythonPackage rec {
         pname = "usbreq";
@@ -24,52 +31,45 @@
 
         meta = {
           description = "A USB library for humans";
-          platforms = intersectPlatforms (with pkgs.python3Packages; [ pyusb inflection ]);
+          #platforms = intersectPlatforms (with pkgs.python3Packages; [ pyusb inflection ]);
+          platforms = intersectPlatforms usbreqDeps;
         };
 
         pythonImportsCheck = [ "usbreq" ];
 
-        propagatedBuildInputs = with pkgs.python3Packages; [
-          pyusb
-          inflection
-        ];
+        propagatedBuildInputs = usbreqDeps;
 
-        nativeBuildInputs = with pkgs.python3Packages; [
-          setuptools
-          wheel
-        ];
+        nativeBuildInputs = attrValues {
+          inherit (pkgs.python3Packages)
+            setuptools
+            wheel
+          ;
+        };
 
         # I guess documentation builders are check inputs?
-        nativeCheckInputs = with pkgs.python3Packages; [
-          sphinx
-          sphinx-rtd-theme
-        ];
+        nativeCheckInputs = attrValues {
+          inherit (pkgs.python3Packages)
+            sphinx
+            sphinx-rtd-theme
+          ;
+        };
       };
-
-      devShellPkgs = with pkgs.python3Packages; [
-        build
-        twine
-        ipython
-      ];
 
     in {
       packages.default = usbreq;
 
-      # IPython is a much nicer development experience.
       devShells.default = pkgs.mkShell {
 
         inputsFrom = [ usbreq ];
 
-        packages = devShellPkgs;
-
-      };
-
-      devShells.lsp = pkgs.mkShell {
-        meta.description = "Like devShells.default, but with Pyright.";
-
-        inputsFrom = [ usbreq ];
-
-        packages = devShellPkgs ++ [
+        packages = attrValues {
+          inherit (pkgs.python3Packages)
+            build
+            twine
+            # IPython is a much nicer development experience.
+            ipython
+          ;
+        } ++ [
           pkgs.pyright
         ];
 
