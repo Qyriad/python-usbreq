@@ -35,6 +35,11 @@
           platforms = intersectPlatforms usbreqDeps;
         };
 
+        outputs = [
+          "out"
+          "doc"
+        ];
+
         pythonImportsCheck = [ "usbreq" ];
 
         propagatedBuildInputs = usbreqDeps;
@@ -43,6 +48,7 @@
           inherit (pkgs.python3Packages)
             setuptools
             wheel
+            sphinxHook
           ;
         };
 
