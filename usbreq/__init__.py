@@ -12,7 +12,16 @@ import inflection
 
 def find(*args, **kwargs):
     """ Creates a :py:class:`USBDevice` using the same logic and arguments as :py:meth:`usb.core.find`. """
-    return USBDevice(usb.core.find(*args, **kwargs))
+
+    results = usb.core.find(*args, **kwargs)
+
+    if results is None:
+        return None
+
+    if devices_iter := iter(results):
+        return map(lambda result : USBDevice(result), device_iter)
+
+    return results
 
 
 class DummyEnum(int):
